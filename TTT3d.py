@@ -140,9 +140,7 @@ class TTT3d():
                 ind += -itr_right
             ind += itr_right
         else:
-            ind += -itr_right
-            ind += -itr_right
-            ind += -itr_right
+            ind += 3 * -itr_right
         
         # check digonal
         r_found = self.__check_row(ind, itr_right, itr_down, None, player)
@@ -164,9 +162,7 @@ class TTT3d():
                 ind += itr_down
             ind += -itr_down
         else:
-            ind += itr_down
-            ind += itr_down
-            ind += itr_down
+            ind += 3 * itr_down
 
         # check digonal
         r_found = self.__check_row(ind, itr_right, -itr_down, None, player)
