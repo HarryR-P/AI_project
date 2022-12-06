@@ -98,7 +98,7 @@ class TTT3d():
         r_four += r_found[3]
         draw_list.append(r_found[4])
 
-        draw = all(item is True for item in draw_list)
+        draw = all(draw_list)
 
         return r_one, r_two, r_three, r_four, draw
         
@@ -151,6 +151,7 @@ class TTT3d():
         r_three += r_found[2]
         r_four += r_found[3]
         draw_list.append(r_found[4])
+
         if axis != 2:
             # check horizontal
             while self.__is_in_bounds(ind[0], ind[1], ind[2]):
@@ -175,7 +176,7 @@ class TTT3d():
         r_four += r_found[3]
         draw_list.append(r_found[4])
 
-        draw = all(item is True for item in draw_list)
+        draw = all(draw_list)
 
         return r_one, r_two, r_three, r_four, draw
 
@@ -200,28 +201,29 @@ class TTT3d():
         found = 0
         ind_temp = ind.copy()
         not_row = False
-        player_row = False
         draw = False
+        found_rows = np.zeros(4).astype('int')
         while self.__is_in_bounds(ind_temp[0], ind_temp[1], ind_temp[2]):
             if state[ind_temp[0], ind_temp[1], ind_temp[2]] == not_player:
                 not_row = True
-                break
-            if state[ind_temp[0], ind_temp[1], ind_temp[2]] == player:
-                player_row = True
+                found = 0
+            elif state[ind_temp[0], ind_temp[1], ind_temp[2]] == player:
                 found += 1
+                found_rows[found-1] += 1
+                if found > 1:
+                    found_rows[found-2] -= 1
+            else:
+                found = 0
             ind_temp += ittr_hor
             ind_temp += ittr_vert
             ind_temp += ittr_depth
-        if found == 1 and not not_row:
-            r_one += 1
-        elif found == 2 and not not_row:
-            r_two += 1
-        elif found == 3 and not not_row:
-            r_three += 1
-        elif found == 4 and not not_row:
-            r_four += 1
+        if not not_row:
+            r_one = found_rows[0]
+            r_two = found_rows[1]
+            r_three = found_rows[2]
+            r_four = found_rows[3]
 
-        if not_row and player_row:
+        if not_row and any(row > 0 for row in found_rows):
             draw = True
 
         return r_one, r_two, r_three, r_four, draw
