@@ -270,7 +270,7 @@ class TTT3d():
 
 def minimax_step(board, objective_fn, player):
     sim_board = board.copy()
-    action_value, move = minimax(True, sim_board, objective_fn, player, alpha=-1000000, beta=1000000, max_layer=4,cur_layer=0)
+    action_value, move = minimax(True, sim_board, objective_fn, player, player, alpha=-1000000, beta=1000000, max_layer=4,cur_layer=0)
     return move, action_value
 
 
@@ -280,7 +280,7 @@ def random_step(board, rng):
     return moves[move_ind]
 
 
-def minimax(maxim, board, objective_fn, player, alpha, beta, max_layer, cur_layer):
+def minimax(maxim, board, objective_fn, maxplayer, curplayer, alpha, beta, max_layer, cur_layer):
     val = board.is_game_over()
     if val != 0:
         # draw
@@ -288,16 +288,16 @@ def minimax(maxim, board, objective_fn, player, alpha, beta, max_layer, cur_laye
             return 0, None
         # loss/win
         else:
-            return objective_fn(board), None
+            return objective_fn(board, maxplayer), None
     if max_layer <= cur_layer:
-        return objective_fn(board), None
+        return objective_fn(board, maxplayer), None
     scores = []
     moves = board.possible_moves()
     for move in moves:
         if alpha >= beta:
             break
-        board.turn(player, move)
-        score, _ = minimax(not maxim, board, objective_fn, (player % 2) + 1, alpha, beta, max_layer, cur_layer + 1)
+        board.turn(curplayer, move)
+        score, _ = minimax(not maxim, board, objective_fn, maxplayer, (curplayer % 2) + 1, alpha, beta, max_layer, cur_layer + 1)
         scores.append(score)
         board.revert_turn(move)
         if maxim:
@@ -315,27 +315,35 @@ def minimax(maxim, board, objective_fn, player, alpha, beta, max_layer, cur_laye
         return scores[min_ind], moves[min_ind]
 
 
-def objective_fc_one(board):
-    player1_data = board.detect_row_state(player=1)
-    player2_data = board.detect_row_state(player=2)
+def objective_fc_one(board, maxplayer):
+    player1_data = board.detect_row_state(player=maxplayer)
+    player2_data = board.detect_row_state(player=((maxplayer % 2) + 1))
     if player2_data[3] > 0:
         return -1
     p1_sum = player1_data[0] + 2 * player1_data[1] + 5 * player1_data[2] + 10 * player1_data[3]
     return p1_sum
 
 
-def objective_fc_two(board):
-    player1_data = board.detect_row_state(player=1)
-    player2_data = board.detect_row_state(player=2)
+def objective_fc_two(board, maxplayer):
+    player1_data = board.detect_row_state(player=maxplayer)
+    player2_data = board.detect_row_state(player=((maxplayer % 2) + 1))
     if player2_data[3] > 0:
         return -1
     p1_sum = player1_data[1] + 5 * player1_data[2] + 50 * player1_data[3]
     return p1_sum
 
 
-def objective_fc_three(board):
-    player1_data = board.detect_row_state(player=1)
-    player2_data = board.detect_row_state(player=2)
+def objective_fc_three(board, maxplayer):
+    player1_data = board.detect_row_state(player=maxplayer)
+    player2_data = board.detect_row_state(player=((maxplayer % 2) + 1))
+    p1_sum = player1_data[0] + 2 * player1_data[1] + 5 * player1_data[2] + 10 * player1_data[3]
+    p2_sum = player2_data[0] + 2 * player2_data[1] + 5 * player2_data[2] + 10 * player2_data[3]
+    return p1_sum - p2_sum
+
+
+def objective_fc_four(board, maxplayer):
+    player1_data = board.detect_row_state(player=maxplayer)
+    player2_data = board.detect_row_state(player=((maxplayer % 2) + 1))
     p1_sum = player1_data[1] + 5 * player1_data[2] + 50 * player1_data[3]
     p2_sum = player2_data[1] + 5 * player2_data[2] + 50 * player2_data[3]
     return p1_sum - p2_sum
@@ -356,12 +364,11 @@ def rand_bot_game(objective_fn, seed):
             obj_value_list.append(obj_value)
             board.turn(minimax_player, move)
             print(f'Turn {turn_count}: X to {move}')
-            player1_turn = not player1_turn
         else:
             move = random_step(board, rng)
             board.turn(rand_player, move)
             print(f'Turn {turn_count}: O to {move}')
-            player1_turn = not player1_turn
+        player1_turn = not player1_turn
     end_val = board.is_game_over()
     if end_val == 1:
         winner = 'Minimax'

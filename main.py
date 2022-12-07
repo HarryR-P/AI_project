@@ -4,12 +4,14 @@ import matplotlib.pyplot as plt
 
 def main():
 
-    turns, winner, final_board, val_list = tic.rand_bot_game(tic.objective_fc_one, seed=1122333)
+    turns, winner, final_board, val_list = tic.rand_bot_game(tic.objective_fc_four, seed=1122333)
 
     print(final_board)
 
     plt.plot(val_list)
-    plt.xlabel('Objective Function Value')
+    plt.title('Objective Function Value per turn')
+    plt.xlabel('Turns')
+    plt.ylabel('Value')
     plt.show()
 
     return
